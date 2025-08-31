@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冬休みカウントダウン</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #000;
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .container {
+            text-align: center;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .title {
+            font-size: 3rem;
+            font-weight: 300;
+            margin-bottom: 60px;
+            color: #fff;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+        }
+
+        .nixie-tube {
+            position: relative;
+            background: #000;
+            border: 3px solid #333;
+            border-radius: 15px;
+            padding: 40px;
+            min-height: 250px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 
+                inset 0 0 20px rgba(255, 255, 255, 0.1),
+                0 0 30px rgba(255, 255, 255, 0.1);
+            margin: 0 auto;
+            width: 90%;
+            max-width: 500px;
+        }
+
+        .nixie-display {
+            position: relative;
+            width: 100%;
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .countdown-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: nowrap;
+            white-space: nowrap;
+        }
+
+        .time-unit {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 50px;
+            flex-shrink: 0;
+        }
+
+        .time-label {
+            font-size: 9px;
+            font-weight: 600;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+            white-space: nowrap;
+        }
+
+        .time-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+            text-shadow: 
+                0 0 10px currentColor,
+                0 0 20px currentColor,
+                0 0 30px currentColor;
+            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            opacity: 0;
+            transform: translateY(20px) scale(0.8);
+            color: #ff6b35;
+            white-space: nowrap;
+        }
+
+        .time-value.active {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            color: #ff6b35;
+        }
+
+        .time-value.fading {
+            opacity: 0;
+            transform: translateY(-20px) scale(0.8);
+            color: #666;
+        }
+
+        .countdown-text {
+            position: absolute;
+            font-size: 4rem;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+            text-shadow: 
+                0 0 10px currentColor,
+                0 0 20px currentColor,
+                0 0 30px currentColor;
+            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            opacity: 0;
+            transform: translateY(20px) scale(0.8);
+            white-space: nowrap;
+        }
+
+        .countdown-text.active {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            color: #ff6b35;
+        }
+
+        .countdown-text.fading {
+            opacity: 0;
+            transform: translateY(-20px) scale(0.8);
+            color: #666;
+        }
+
+        .end-text {
+            font-size: 5rem;
+            font-weight: 700;
+            color: #ff6b35;
+            text-shadow: 
+                0 0 15px #ff6b35,
+                0 0 30px #ff6b35,
+                0 0 45px #ff6b35;
+            animation: endGlow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes endGlow {
+            0% { 
+                text-shadow: 
+                    0 0 15px #ff6b35,
+                    0 0 30px #ff6b35,
+                    0 0 45px #ff6b35;
+            }
+            100% { 
+                text-shadow: 
+                    0 0 20px #ff6b35,
+                    0 0 40px #ff6b35,
+                    0 0 60px #ff6b35;
+            }
+        }
+
+        .glow-effect {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at center, rgba(255, 107, 53, 0.1) 0%, transparent 70%);
+            border-radius: 12px;
+            animation: pulse 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.3; }
+            100% { opacity: 0.7; }
+        }
+
+        @media (max-width: 768px) {
+            .time-value {
+                font-size: 1.8rem;
+            }
+            
+            .time-label {
+                font-size: 7px;
+            }
+            
+            .countdown-container {
+                gap: 10px;
+            }
+            
+            .title {
+                font-size: 2rem;
+            }
+            
+            .nixie-tube {
+                padding: 30px 15px;
+                min-height: 180px;
+            }
+            
+            .time-unit {
+                min-width: 40px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .time-value {
+                font-size: 1.4rem;
+            }
+            
+            .time-label {
+                font-size: 6px;
+            }
+            
+            .countdown-container {
+                gap: 8px;
+            }
+            
+            .nixie-tube {
+                padding: 20px 10px;
+                min-height: 160px;
+            }
+            
+            .time-unit {
+                min-width: 35px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">winter_vacation</h1>
+        
+        <div class="nixie-tube">
+            <div class="glow-effect"></div>
+            <div class="nixie-display">
+                <div class="countdown-container" id="countdown-container">
+                    <div class="time-unit">
+                        <div class="time-label">DAYS</div>
+                        <div class="time-value" id="days">00</div>
+                    </div>
+                    <div class="time-unit">
+                        <div class="time-label">HOURS</div>
+                        <div class="time-value" id="hours">00</div>
+                    </div>
+                    <div class="time-unit">
+                        <div class="time-label">MINUTES</div>
+                        <div class="time-value" id="minutes">00</div>
+                    </div>
+                    <div class="time-unit">
+                        <div class="time-label">SECONDS</div>
+                        <div class="time-value" id="seconds">00</div>
+                    </div>
+                </div>
+                <div class="countdown-text" id="end-display">END</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ここで目標日時を設定してください（年-月-日T時:分の形式）
+        const TARGET_DATE = '2025-12-23T11:00'; // 2025年12月23日 午前11時
+        
+        let countdownInterval;
+        let targetDateTime;
+        let previousValues = { days: '00', hours: '00', minutes: '00', seconds: '00' };
+        let isFinished = false;
+
+        function initCountdown() {
+            targetDateTime = new Date(TARGET_DATE);
+            updateCountdown();
+            countdownInterval = setInterval(updateCountdown, 1000);
+        }
+
+        function updateTimeValue(elementId, newValue, unit) {
+            const element = document.getElementById(elementId);
+            const oldValue = previousValues[unit];
+            
+            if (oldValue !== newValue) {
+                // Fade out current number
+                element.classList.remove('active');
+                element.classList.add('fading');
+                
+                setTimeout(() => {
+                    element.textContent = newValue;
+                    element.classList.remove('fading');
+                    element.classList.add('active');
+                }, 250);
+                
+                previousValues[unit] = newValue;
+            }
+        }
+
+        function showEndMessage() {
+            const container = document.getElementById('countdown-container');
+            const endDisplay = document.getElementById('end-display');
+            
+            container.style.opacity = '0';
+            container.style.transform = 'translateY(-20px) scale(0.8)';
+            
+            setTimeout(() => {
+                container.style.display = 'none';
+                endDisplay.classList.add('active');
+                endDisplay.style.opacity = '1';
+                endDisplay.style.transform = 'translateY(0) scale(1)';
+            }, 500);
+        }
+
+        function updateCountdown() {
+            if (isFinished) return;
+            
+            const now = new Date().getTime();
+            const distance = targetDateTime.getTime() - now;
+
+            if (distance < 0) {
+                clearInterval(countdownInterval);
+                isFinished = true;
+                showEndMessage();
+                return;
+            }
+
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            const formattedDays = days.toString().padStart(2, '0');
+            const formattedHours = hours.toString().padStart(2, '0');
+            const formattedMinutes = minutes.toString().padStart(2, '0');
+            const formattedSeconds = seconds.toString().padStart(2, '0');
+
+            updateTimeValue('days', formattedDays, 'days');
+            updateTimeValue('hours', formattedHours, 'hours');
+            updateTimeValue('minutes', formattedMinutes, 'minutes');
+            updateTimeValue('seconds', formattedSeconds, 'seconds');
+        }
+
+        // Initialize countdown when page loads
+        window.onload = function() {
+            // Initialize all time values as active
+            const timeElements = ['days', 'hours', 'minutes', 'seconds'];
+            timeElements.forEach(id => {
+                document.getElementById(id).classList.add('active');
+            });
+            
+            initCountdown();
+        };
+    </script>
+</body>
+</html>
